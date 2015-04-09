@@ -1,3 +1,20 @@
+/**
+ * holds definitions of packets exchanged between the client and server.
+ *
+ * @sourceFile   protocol.h
+ *
+ * @program      commaudio.exe
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Calvin Rempel, Georgi Hristov, Manuel Gonzales, Eric Tsang
+ *
+ * @programmer   Calvin Rempel, Georgi Hristov, Manuel Gonzales, Eric Tsang
+ *
+ * @note         none
+ */
 #ifndef _PROTOCOL_H_
 #define _PROTOCOL_H_
 
@@ -10,7 +27,7 @@
 
 #define DATA_BUFSIZE 8196
 
-#define SIZE_INDEX	4
+#define SIZE_INDEX 4
 
 #define STREAM_PACKET 9
 
@@ -63,8 +80,13 @@ struct LocalDataPacket
 
 typedef struct LocalDataPacket LocalDataPacket;
 
-typedef struct DataPacket DataPacket;
-
+/**
+ * packet sent between the client and server for different kinds of requests,
+ *   like canceling a download, starting a download, changing the stream, and so
+ *   on.
+ *
+ * {index}; integer that identifies which song is being played, or downloaded.
+ */
 struct RequestPacket
 {
 	int index;
@@ -80,9 +102,34 @@ struct MessageHeader
 
 typedef struct MessageHeader MessageHeader;
 
+/**
+ * structure that holds all kinds of information about a song within itself.
+ *   information included are path to the song, in wide characters, path to the
+ *   song in a c style string, name of the song, information about the PCM used
+ *   for playing the song, and so on.
+ *
+ * many of these structures are sent to the client from the server when it
+ *   initially connects, so the client can create a song list on it's side.
+ *
+ * {id}; id used to identify this song
+ *
+ * {channels}; number of channels in the OCM data
+ *
+ * {bps}; number of bits per sample of the PCM data
+ *
+ * {sample_rate}; sampling rate of the PCM data
+ *
+ * {size}; size of the song in bytes
+ *
+ * {filepath}; path to the file on the server side in wide characters
+ *
+ * {cFilepath}; path to the file on the client side
+ *
+ * {cFilename}; name of the file on the client side
+ */
 struct SongName
 {
-	int  id;
+	int id;
 	short channels;
 	short bps; //bits per sample
 	unsigned long sample_rate;
@@ -94,17 +141,22 @@ struct SongName
 
 typedef struct SongName SongName;
 
-struct SongStream
-{
-	short channels;
-	short bps; //bits per sample
-	unsigned long sample_rate;
-	int id;
-	char songname[STR_LEN];
-};
-
-typedef struct SongStream SongStream;
-
+/**
+ * payload of the packet exchanged between the client and the server's file
+ *   transfer classes
+ *
+ * {filename}; name of the song file being downloaded
+ *
+ * {data}; data about the file being downloaded
+ *
+ * {dataLen}; length of the data in the {data} member
+ *
+ * {f_SOF}; true if start of frame
+ *
+ * {f_EOF}; true if the file has reached EOF
+ *
+ * {songId}; id of the song being downloaded
+ */
 struct FileTransferData
 {
 	char filename[FILENAME_PACKET_LENGTH];
@@ -117,6 +169,10 @@ struct FileTransferData
 
 typedef struct FileTransferData FileTransferData;
 
+/**
+ * all the packets that the client and server exchange over the TCP control
+ *   connection.
+ */
 union TCPPacket
 {
 	SongName songName;

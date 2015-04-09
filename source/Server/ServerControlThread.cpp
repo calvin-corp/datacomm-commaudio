@@ -45,12 +45,44 @@ static int startRoutine(HANDLE* thread, HANDLE stopEvent,
     LPTHREAD_START_ROUTINE routine, void* params);
 static int stopRoutine(HANDLE* thread, HANDLE stopEvent);
 
+/**
+ * returns the singleton instance of the {ServerControlThrhead}
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    ServerControlThread * ServerControlThread::getInstance()
+ *
+ * @return       [description]
+ */
 ServerControlThread * ServerControlThread::getInstance()
 {
     static ServerControlThread * _instance = new ServerControlThread();
     return _instance;
 }
 
+/**
+ * creates an instance of the {ServerControlThread}
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    ServerControlThread::ServerControlThread()
+ */
 ServerControlThread::ServerControlThread()
     : _msgq(MSGQ_CAPACITY,MSGQ_ELEM_SIZE)
     , _socks()
@@ -66,12 +98,42 @@ ServerControlThread::ServerControlThread()
 	currentsong = NULL;
 }
 
+/**
+ * cleans up all the allocated memory of the {ServerControlThread}
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    ServerControlThread::~ServerControlThread()
+ */
 ServerControlThread::~ServerControlThread()
 {
-
 }
 
-
+/**
+ * sets the playlist for the server
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::setPlaylist( Playlist * _playlist )
+ *
+ * @param        _playlist   sets the playlist for the server
+ */
 void ServerControlThread::setPlaylist( Playlist * _playlist )
 {
     if( _playlist != NULL )
@@ -82,11 +144,45 @@ void ServerControlThread::setPlaylist( Playlist * _playlist )
     }
 }
 
+/**
+ * returns the playlist of the server
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    Playlist * ServerControlThread::getPlaylist()
+ *
+ * @return       playlist saves in the {ServerControlThread}
+ */
 Playlist * ServerControlThread::getPlaylist()
 {
     return playlist;
 }
 
+/**
+ * sets the UDPSocket used by the {ServerControlThread} to stream audio.
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::setUDPSocket( UDPSocket * sock )
+ *
+ * @param        sock   [description]
+ */
 void ServerControlThread::setUDPSocket( UDPSocket * sock )
 {
     if( sock != NULL )
@@ -98,7 +194,23 @@ void ServerControlThread::setUDPSocket( UDPSocket * sock )
     }
 }
 
-
+/**
+ * invoked when a new client has connected with the server
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::addConnection( TCPSocket * connection )
+ *
+ * @param        connection   connection structure
+ */
 void ServerControlThread::addConnection( TCPSocket * connection )
 {
     WaitForSingleObject(access,INFINITE);
@@ -116,16 +228,68 @@ void ServerControlThread::addConnection( TCPSocket * connection )
     ReleaseMutex(access);
 }
 
+/**
+ * stgarts the {ServerControlThread}
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::start()
+ */
 void ServerControlThread::start()
 {
     startRoutine(&_thread,_threadStopEv,_threadRoutine,this);
 }
 
+/**
+ * stops the {ServerControlThread}
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::stop()
+ */
 void ServerControlThread::stop()
 {
     stopRoutine(&_thread,_threadStopEv);
 }
 
+/**
+ * threaded routine of the {ServerControlThread}. it dequeues from all relevant
+ *   message queues, and handles the dequeued messages.
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    DWORD WINAPI ServerControlThread::_threadRoutine( void * params
+ *   )
+ *
+ * @param        params   pointer to the {ServerControlThread} instance that
+ *   this thread is running for
+ *
+ * @return       exit code
+ */
 DWORD WINAPI ServerControlThread::_threadRoutine( void * params )
 {
     ServerControlThread * thiz = (ServerControlThread *) params;
@@ -184,6 +348,24 @@ DWORD WINAPI ServerControlThread::_threadRoutine( void * params )
     return 0;
 }
 
+/**
+ * handles the change stream message from the socket
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::_handleMsgChangeStream( RequestPacket * data, TCPSocket * sock )
+ *
+ * @param        data   data of the packet
+ * @param        sock   socket that th emessage was received from
+ */
 void ServerControlThread::_handleMsgChangeStream( RequestPacket * data, TCPSocket * sock )
 {
 	ServerControlThread * sct = ServerControlThread::getInstance();
@@ -211,16 +393,69 @@ void ServerControlThread::_handleMsgChangeStream( RequestPacket * data, TCPSocke
 	delete [] out;
 }
 
+/**
+ * starts the download.
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::_handleMsgRequestDownload( RequestPacket * data, TCPSocket* socket )
+ *
+ * @param        data   data of the packet
+ * @param        socket   socket that the message was received from
+ */
 void ServerControlThread::_handleMsgRequestDownload( RequestPacket * data, TCPSocket* socket )
 {
 	fileTransferer->sendFile(playlist->getSong( data->index ), socket);
 }
 
+/**
+ * cancels a currently downloading download
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::_handleMsgCancelDownload( RequestPacket * data, TCPSocket* socket )
+ *
+ * @param        data   data of the packet
+ * @param        socket   socket that the message was received from
+ */
 void ServerControlThread::_handleMsgCancelDownload( RequestPacket * data, TCPSocket* socket )
 {
 	fileTransferer->cancelTransfer(playlist->getSong( data->index )->id, socket);
 }
 
+/**
+ * handles a disconnection message sent from the client
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::_handleMsgDisconnect( int client )
+ *
+ * @param        client   socket that the message was received from
+ */
 void ServerControlThread::_handleMsgDisconnect( int client )
 {
     WaitForSingleObject( access, INFINITE );
@@ -229,6 +464,21 @@ void ServerControlThread::_handleMsgDisconnect( int client )
     ReleaseMutex( access );
 }
 
+/**
+ * sends the playlist to all connected clients
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    void ServerControlThread::sendPlaylistToAll( void )
+ */
 void ServerControlThread::sendPlaylistToAll( void )
 {
     QueueUserAPC( _sendPlaylistToAllRoutine // _In_  PAPCFUNC pfnAPC,
@@ -236,6 +486,24 @@ void ServerControlThread::sendPlaylistToAll( void )
                 , NULL );                   // _In_  ULONG_PTR dwData
 }
 
+/**
+ * sthread for the {sendPlaylistToAll} function
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    VOID CALLBACK ServerControlThread::_sendPlaylistToAllRoutine(
+ *   ULONG_PTR )
+ *
+ * @param        ULONG_PTR   unused
+ */
 VOID CALLBACK ServerControlThread::_sendPlaylistToAllRoutine( ULONG_PTR )
 {
     ServerControlThread * thiz = ServerControlThread::getInstance();
@@ -248,6 +516,25 @@ VOID CALLBACK ServerControlThread::_sendPlaylistToAllRoutine( ULONG_PTR )
 
 }
 
+/**
+ * sends a playlist to one client, as well as the change stream message so the
+ *   client knows which song is curently playing, and can adjust its sample rate
+ *   and such as needed
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang, Georgi Hristov
+ *
+ * @programmer   Eric Tsang, Georgi Hristov
+ *
+ * @note         none
+ *
+ * @signature    VOID CALLBACK ServerControlThread::_sendPlaylistToOne( ULONG_PTR data )
+ *
+ * @param        data   socket to send the data to.
+ */
 VOID CALLBACK ServerControlThread::_sendPlaylistToOne( ULONG_PTR data )
 {
     ServerControlThread * thiz = ServerControlThread::getInstance();
@@ -267,13 +554,6 @@ VOID CALLBACK ServerControlThread::_sendPlaylistToOne( ULONG_PTR data )
 		sock->Send(CHANGE_STREAM, &packet, sizeof(packet));
 	}
 }
-//
-//DWORD WINAPI ServerControlThread::_sendFileToOne( void * params )
-//{
-//    ServerControlThread * thiz = ServerControlThread::getInstance();
-//    thiz->udpSocket->sendWave( *((SongName *) params), 60, thiz->_socks );
-//    return 0;
-//}
 
 DWORD WINAPI ServerControlThread::_multicastRoutine( void * params )
 {

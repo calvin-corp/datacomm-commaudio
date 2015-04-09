@@ -7,6 +7,10 @@
 static DWORD WINAPI delayedSetEventRoutine(LPVOID params);
 static HANDLE delayedSetEventAccess = CreateMutex(NULL, FALSE, NULL);;
 
+/**
+ * structure passed to the thread as thread running delayedSetEventRoutine
+ *   as parameters.
+ */
 struct DelayedSetEventParams
 {
     HANDLE event;
@@ -19,6 +23,27 @@ typedef struct DelayedSetEventParams DelayedSetEventParams;
 // function implementations //
 //////////////////////////////
 
+/**
+ * sets an {event} milliseconds {milliseconds} in the future.
+ *
+ * @function     delayedSetEvent
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang
+ *
+ * @programmer   Eric Tsang
+ *
+ * @note         none
+ *
+ * @signature    void delayedSetEvent(HANDLE event, long milliseconds)
+ *
+ * @param        event   event to set in the future
+ * @param        milliseconds   milliseconds to wait before setting the
+ *   parameter.
+ */
 void delayedSetEvent(HANDLE event, long milliseconds)
 {
     // obtain synchronization objects
@@ -38,6 +63,28 @@ void delayedSetEvent(HANDLE event, long milliseconds)
     ReleaseMutex(delayedSetEventAccess);
 }
 
+/**
+ * thread that gets created from the delayedSetEvent function. it does the
+ *   actual waiting, then setting of the passed event object.
+ *
+ * @function     delayedSetEventRoutine
+ *
+ * @date         2015-04-09
+ *
+ * @revision     none
+ *
+ * @designer     Eric Tsang
+ *
+ * @programmer   Eric Tsang
+ *
+ * @note         none
+ *
+ * @signature    static DWORD WINAPI delayedSetEventRoutine(LPVOID params)
+ *
+ * @param        params   pointer to a DelayedSetEventParams structure
+ *
+ * @return       exit code
+ */
 static DWORD WINAPI delayedSetEventRoutine(LPVOID params)
 {
     // parse thread parameters
