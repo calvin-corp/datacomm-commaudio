@@ -1,3 +1,11 @@
+/*--------------------------------------------------------------
+-- SOURCE FILE: Server.cpp
+--
+-- DESIGNER: Georgi Hristov
+--
+-- NOTES:
+-- The {Server} class provides network connection utilities
+--------------------------------------------------------------*/
 #ifndef SERVER_H
 #define SERVER_H
 
@@ -34,15 +42,16 @@ class Server
 public:
     Server( unsigned short _tcpPort, newConnectionHandler _handler, void * _data, unsigned long groupIP, unsigned short udpPort );
     virtual ~Server();
+    
     bool startTCP();
-    void submitCompletionRoutine( PAPCFUNC lpCompletionRoutine, void * to );
     friend newConnectionHandler;
     
     bool startUDP();
-
+    
+    void submitCompletionRoutine( PAPCFUNC lpCompletionRoutine, void * to );
+    
 	void disconnect();
 
-	
     friend DWORD WINAPI WorkerThread( LPVOID lpParam );
 private:
     unsigned short tcpPort;

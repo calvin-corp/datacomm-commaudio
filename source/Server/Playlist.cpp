@@ -1,3 +1,12 @@
+/*--------------------------------------------------------------
+-- SOURCE FILE: Playlist.cpp
+--
+-- PROGRAMMERS: Georgi Hristov
+--				Manuel Gonzales
+--
+-- NOTES:
+-- This file contains the implementation of the {Playlist} class
+--------------------------------------------------------------*/
 #include "Playlist.h"
 #include <string.h>
 
@@ -6,7 +15,17 @@
 // static function forward declarations
 static int getSongfileInfo(SongName* song, wchar_t* filepath, wchar_t* filename, int songId);
 
-// Playlist implementation
+/*--------------------------------------------------------------
+-- FUNCTION: constructor
+--
+-- PROGRAMMER: Georgi Hristov
+--			   Manuel Gonzales
+--
+-- NOTES:
+-- Initiates the {Playlist} by reading the files
+-- in a directory,  specified by a
+-- path which can include wildcards ('*', '?')
+--------------------------------------------------------------*/
 Playlist::Playlist( wchar_t * _dir )
 {
 	static int curId = 0;
@@ -62,9 +81,13 @@ Playlist::~Playlist()
 	delete [] sDir;
 }
 
-
+/*
+-- Returns the full path to
+-- the song with the given id
+*/
 wchar_t * Playlist::getSongPath( int id )
 {
+	// truncate path to last back slash
 	int lastBackSlash = wcslen( sDir );
 	while( sDir[ lastBackSlash ] != L'\\' ) --lastBackSlash;
 	++lastBackSlash;
@@ -74,6 +97,7 @@ wchar_t * Playlist::getSongPath( int id )
 
 	if( it != playlist.end() )
 	{
+		// append song name to parent director
 		wchar_t * output = new wchar_t[ lastBackSlash + wcslen( it->filepath ) + 1 ];
 		memcpy( output, sDir, lastBackSlash * sizeof( wchar_t ) );
 		memcpy( output + lastBackSlash, it->filepath, ( wcslen( it->filepath ) + 1 ) * sizeof( wchar_t ) );
@@ -100,7 +124,7 @@ SongName * Playlist::getSong( int id )
 	}
 }
 
-// static function implementations
+// Fills SongName struct with file meta data
 int getSongfileInfo(SongName* song, wchar_t* filepath, wchar_t* filename, int songId)
 {
 	// bail out if cant open file

@@ -1,3 +1,13 @@
+/*--------------------------------------------------------------
+-- SOURCE FILE: ServerControlThread.h
+--
+-- PROGRAMMERS: Eric Tsang
+--              Georgi Hristov
+--              Manuel Gonzales
+-- NOTES:
+-- Contains the logic of the server.
+--------------------------------------------------------------*/
+
 #include "ServerControlThread.h"
 #include "../Client/FileTransferer.h"
 #include "../GuiLibrary/GuiWindow.h"
